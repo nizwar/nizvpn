@@ -10,7 +10,7 @@ Here, i'll show you how to deal with the "connection things"
 Connect or Disconnect vpn with single line of code!
 ```dart 
     ...
-        _vpnState = NizVpn.vpnDisconnected;
+        _vpnStage = NizVpn.vpnDisconnected;
         _selectedVpn = VpnConfig(
             config: "OVPN CONFIG IS HERE", 
             name: "Japan", 
@@ -21,7 +21,7 @@ Connect or Disconnect vpn with single line of code!
 
     ...
         if (_selectedVpn == null) return; //Stop right here if user not select a vpn
-        if (_vpnState == NizVpn.vpnDisconnected) {
+        if (_vpnStage == NizVpn.vpnDisconnected) {
             //Start if stage is disconnected
             NizVpn.startVpn(_selectedVpn);
         } else {
@@ -38,7 +38,7 @@ Don't forget to listen your vpn stage and status, you can simply show them with 
         //Add listener to update vpnStage
         NizVpn.vpnStageSnapshot().listen((event) {
             setState(() {
-                _vpnState = event; //Look at stages detail below
+                _vpnStage = event; //Look at stages detail below
             });
         });
     ... 
@@ -55,15 +55,15 @@ Don't forget to listen your vpn stage and status, you can simply show them with 
 ### VPN Stages
 Let me be clearer, VPN Stage shows the connection indicator when connecting the VPN
 ```dart
-    static const String vpnConnected = "connected";
-    static const String vpnDisconnected = "disconnected";
-    static const String vpnWaitConnection = "wait_connection";
-    static const String vpnAuthenticating = "authenticating";
-    static const String vpnReconnect = "reconnect";
-    static const String vpnNoConnection = "no_connection";
-    static const String vpnConnecting = "connecting";
-    static const String vpnPrepare = "prepare";
-    static const String vpnDenied = "denied";
+static const String vpnConnected = "connected";
+static const String vpnDisconnected = "disconnected";
+static const String vpnWaitConnection = "wait_connection";
+static const String vpnAuthenticating = "authenticating";
+static const String vpnReconnect = "reconnect";
+static const String vpnNoConnection = "no_connection";
+static const String vpnConnecting = "connecting";
+static const String vpnPrepare = "prepare";
+static const String vpnDenied = "denied";
 ```
 
 # License
