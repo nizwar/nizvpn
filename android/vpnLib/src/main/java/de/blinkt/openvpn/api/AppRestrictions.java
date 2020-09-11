@@ -55,8 +55,14 @@ public class AppRestrictions {
         c.registerReceiver(mRestrictionsReceiver, restrictionsFilter);
     }
 
-    private void removeChangesListener(Context c) {
-        c.unregisterReceiver(mRestrictionsReceiver);
+    private void removeChangesListener(Context c) { 
+        try {
+            c.unregisterReceiver(mRestrictionsReceiver);
+        } catch (IllegalArgumentException ignored) {
+            // I don't know why  this happens:
+            // java.lang.IllegalArgumentException: Receiver not registered: de.blinkt.openvpn.NetworkSateReceiver@41a61a10
+            // Ignore for now ... 
+        }
     }
 
     private String hashConfig(String config) {

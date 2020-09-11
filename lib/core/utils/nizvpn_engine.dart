@@ -35,12 +35,15 @@ class NizVpn {
 
   ///Stop vpn
   static Future<void> stopVpn() => MethodChannel(_methodChannelVpnControl).invokeMethod("stop");
+  
+  ///Open VPN Settings
+  static Future<void> openKillSwitch() => MethodChannel(_methodChannelVpnControl).invokeMethod("kill_switch");
 
-  ///Trigger native to get send stage connection
+  ///Trigger native to get stage connection
   static Future<void> refreshStage() => MethodChannel(_methodChannelVpnControl).invokeMethod("refresh");
 
   ///Get latest stage
-  static Future<String> stage() => MethodChannel(_methodChannelVpnControl).invokeMethod("status");
+  static Future<String> stage() => MethodChannel(_methodChannelVpnControl).invokeMethod("stage");
 
   ///Check if vpn is connected
   static Future<bool> isConnected() => stage().then((value) => value.toLowerCase() == "connected");

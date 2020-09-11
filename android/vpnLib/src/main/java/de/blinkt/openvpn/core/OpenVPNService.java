@@ -497,11 +497,10 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
             try {
                 VpnStatus.removeByteCountListener(mDeviceStateReceiver);
                 this.unregisterReceiver(mDeviceStateReceiver);
-            } catch (IllegalArgumentException iae) {
+            } catch (IllegalArgumentException ignored) {
                 // I don't know why  this happens:
                 // java.lang.IllegalArgumentException: Receiver not registered: de.blinkt.openvpn.NetworkSateReceiver@41a61a10
-                // Ignore for now ...
-                iae.printStackTrace();
+                // Ignore for now ... 
             }
         mDeviceStateReceiver = null;
 
@@ -754,8 +753,14 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
             }
         }
 
-        if (mDeviceStateReceiver != null) {
-            this.unregisterReceiver(mDeviceStateReceiver);
+        try {
+            if (mDeviceStateReceiver != null) {
+                this.unregisterReceiver(mDeviceStateReceiver);
+            }
+        } catch (IllegalArgumentException ignored) {
+            // I don't know why  this happens:
+            // java.lang.IllegalArgumentException: Receiver not registered: de.blinkt.openvpn.NetworkSateReceiver@41a61a10
+            // Ignore for now ...
         }
         // Just in case unregister for state
         VpnStatus.removeStateListener(this);

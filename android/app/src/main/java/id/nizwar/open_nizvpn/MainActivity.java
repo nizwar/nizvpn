@@ -52,6 +52,10 @@ public class MainActivity extends FlutterActivity {
 
     private String config = "", username = "", password = "", name = "";
 
+    private boolean attached = true;
+
+    private JSONObject localJson;
+
     @Override
     public void finish() {
         vpnControlEvent.setStreamHandler(null);
@@ -61,12 +65,24 @@ public class MainActivity extends FlutterActivity {
     }
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(newBase);
+        MultiDex.install(this);
+    }
+
+    @Override
+    public void onDetachedFromWindow() {
+        attached = false;
+        super.onDetachedFromWindow();
+    }
+
+    @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                String status = intent.getStringExtra("state");
-                if (status != null) setStatus(status);
+                String stage = intent.getStringExtra("state");
+                if (stage != null) setStage(stage);
 
                 if (vpnStatusSink != null) {
                     try {
@@ -86,7 +102,9 @@ public class MainActivity extends FlutterActivity {
                         jsonObject.put("byte_in", byteIn);
                         jsonObject.put("byte_out", byteOut);
 
-                        vpnStatusSink.success(jsonObject.toString());
+                        localJson = jsonObject;
+
+                        if (attached) vpnStatusSink.success(jsonObject.toString());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -130,7 +148,7 @@ public class MainActivity extends FlutterActivity {
             switch (call.method) {
                 case "stop":
                     OpenVPNThread.stop();
-                    setStatus("disconnected");
+                    setStage("disconnected");
                     break;
                 case "start":
 
@@ -147,10 +165,19 @@ public class MainActivity extends FlutterActivity {
                     prepareVPN();
                     break;
                 case "refresh":
+                    updateVPNStages();
+                    break;
+                case "refresh_status":
                     updateVPNStatus();
                     break;
-                case "status":
+                case "stage":
                     result.success(OpenVPNService.getStatus());
+                    break;
+                case "kill_switch":
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                        Intent intent = new Intent(Settings.ACTION_VPN_SETTINGS);
+                        startActivity(intent);
+                    }
                     break;
             }
         });
@@ -159,22 +186,22 @@ public class MainActivity extends FlutterActivity {
 
     private void prepareVPN() {
         if (isConnected()) {
-            setStatus("prepare");
+            setStage("prepare");
             Intent vpnIntent = VpnService.prepare(this);
             if (vpnIntent != null) startActivityForResult(vpnIntent, VPN_REQUEST_ID);
             else startVPN();
         } else {
-            setStatus("nonetwork");
+            setStage("nonetwork");
         }
     }
 
     private void startVPN() {
         try {
-            setStatus("connecting");
+            setStage("connecting");
             ConfigParser configParser = new ConfigParser();
             configParser.parseConfig(new StringReader(config));
             VpnProfile vpnProfile = configParser.convertProfile();
-            if(vpnProfile.checkProfile(this) != de.blinkt.openvpn.R.string.no_error_found){
+            if (vpnProfile.checkProfile(this) != de.blinkt.openvpn.R.string.no_error_found) {
                 throw new RemoteException(getString(vpnProfile.checkProfile(this)));
             }
             vpnProfile.mName = name;
@@ -184,26 +211,30 @@ public class MainActivity extends FlutterActivity {
             ProfileManager.setTemporaryProfile(this, vpnProfile);
             VPNLaunchHelper.startOpenVpn(vpnProfile, this);
         } catch (RemoteException e) {
-            setStatus("disconnected");
+            setStage("disconnected");
             e.printStackTrace();
         } catch (ConfigParser.ConfigParseError configParseError) {
-            setStatus("disconnected");
+            setStage("disconnected");
             configParseError.printStackTrace();
         } catch (IOException e) {
-            setStatus("disconnected");
+            setStage("disconnected");
             e.printStackTrace();
         }
     }
 
 
+    private void updateVPNStages() {
+        setStage(OpenVPNService.getStatus());
+    }
+
     private void updateVPNStatus() {
-        setStatus(OpenVPNService.getStatus());
+        if (attached) vpnStatusSink.success(localJson.toString());
     }
 
 
     private boolean isConnected() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        @SuppressLint("MissingPermission") NetworkInfo nInfo = cm.getActiveNetworkInfo();
+        NetworkInfo nInfo = cm.getActiveNetworkInfo();
 
         return nInfo != null && nInfo.isConnectedOrConnecting();
     }
@@ -213,41 +244,41 @@ public class MainActivity extends FlutterActivity {
         if (requestCode == VPN_REQUEST_ID && resultCode == RESULT_OK) {
             startVPN();
         } else {
-            setStatus("denied");
+            setStage("denied");
             Toast.makeText(this, "Permission is denied!", Toast.LENGTH_SHORT).show();
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
 
 
-    private void setStatus(String status) {
-        switch (status.toUpperCase()) {
+    private void setStage(String stage) {
+        switch (stage.toUpperCase()) {
             case "CONNECTED":
-                if (vpnStageSink != null) vpnStageSink.success("connected");
+                if (vpnStageSink != null && attached) vpnStageSink.success("connected");
                 break;
             case "DISCONNECTED":
-                if (vpnStageSink != null) vpnStageSink.success("disconnected");
+                if (vpnStageSink != null && attached) vpnStageSink.success("disconnected");
                 break;
             case "WAIT":
-                if (vpnStageSink != null) vpnStageSink.success("wait_connection");
+                if (vpnStageSink != null && attached) vpnStageSink.success("wait_connection");
                 break;
             case "AUTH":
-                if (vpnStageSink != null) vpnStageSink.success("authenticating");
+                if (vpnStageSink != null && attached) vpnStageSink.success("authenticating");
                 break;
             case "RECONNECTING":
-                if (vpnStageSink != null) vpnStageSink.success("reconnect");
+                if (vpnStageSink != null && attached) vpnStageSink.success("reconnect");
                 break;
             case "NONETWORK":
-                if (vpnStageSink != null) vpnStageSink.success("no_connection");
+                if (vpnStageSink != null && attached) vpnStageSink.success("no_connection");
                 break;
             case "CONNECTING":
-                if (vpnStageSink != null) vpnStageSink.success("connecting");
+                if (vpnStageSink != null && attached) vpnStageSink.success("connecting");
                 break;
             case "PREPARE":
-                if (vpnStageSink != null) vpnStageSink.success("prepare");
+                if (vpnStageSink != null && attached) vpnStageSink.success("prepare");
                 break;
             case "DENIED":
-                if (vpnStageSink != null) vpnStageSink.success("denied");
+                if (vpnStageSink != null && attached) vpnStageSink.success("denied");
                 break;
         }
     }

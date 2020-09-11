@@ -157,9 +157,9 @@ public class ConfigParser {
         BufferedReader br = new BufferedReader(reader);
 
         int lineno = 0;
-        String line;
         try {
-            while ((line = br.readLine()) !=null) {
+            while (true) {
+                String line = br.readLine();
                 lineno++;
                 if (line == null)
                     break;
