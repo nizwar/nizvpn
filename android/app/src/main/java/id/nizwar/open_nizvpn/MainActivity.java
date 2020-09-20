@@ -4,7 +4,6 @@
  */
 
 package id.nizwar.open_nizvpn;
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -14,12 +13,14 @@ import android.net.NetworkInfo;
 import android.net.VpnService;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.multidex.MultiDex;
 
 import org.json.JSONObject;
 
@@ -36,6 +37,7 @@ import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
+
 
 public class MainActivity extends FlutterActivity {
     private MethodChannel vpnControlMethod;
