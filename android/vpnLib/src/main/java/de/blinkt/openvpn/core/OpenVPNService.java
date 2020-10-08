@@ -377,19 +377,19 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
         }
 
         // Check if running on a TV
-        if (runningOnAndroidTV() && !(priority < 0))
-            guiHandler.post(new Runnable() {
+        // if (runningOnAndroidTV() && !(priority < 0))
+        //     guiHandler.post(new Runnable() {
 
-                @Override
-                public void run() {
+        //         @Override
+        //         public void run() {
 
-                    if (mlastToast != null)
-                        mlastToast.cancel();
-                    String toastText = String.format(Locale.getDefault(), "%s - %s", mProfile.mName, msg);
-                    mlastToast = Toast.makeText(getBaseContext(), toastText, Toast.LENGTH_SHORT);
-                    mlastToast.show();
-                }
-            });
+        //             if (mlastToast != null)
+        //                 mlastToast.cancel();
+        //             String toastText = String.format(Locale.getDefault(), "%s - %s", mProfile.mName, msg);
+        //             mlastToast = Toast.makeText(getBaseContext(), toastText, Toast.LENGTH_SHORT);
+        //             mlastToast.show();
+        //         }
+        //     });
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -649,7 +649,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
         mStarting = false;
 
         // Start a new session by creating a new thread.
-        boolean useOpenVPN3 = VpnProfile.doUseOpenVPN3(this);
+        boolean useOpenVPN3 = VpnProfile.doUseOpenVPN3();
 
         // Open the Management Interface
         if (!useOpenVPN3) {
@@ -806,7 +806,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
 
         if (mLocalIP != null) {
             // OpenVPN3 manages excluded local networks by callback
-            if (!VpnProfile.doUseOpenVPN3(this))
+            if (!VpnProfile.doUseOpenVPN3())
                 addLocalNetworksToRoutes();
             try {
                 builder.addAddress(mLocalIP.mIp, mLocalIP.len);

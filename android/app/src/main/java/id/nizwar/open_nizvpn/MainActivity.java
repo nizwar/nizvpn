@@ -4,6 +4,7 @@
  */
 
 package id.nizwar.open_nizvpn;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -26,6 +27,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 
 import de.blinkt.openvpn.VpnProfile;
 import de.blinkt.openvpn.core.ConfigParser;
@@ -52,7 +54,16 @@ public class MainActivity extends FlutterActivity {
     private static final int VPN_REQUEST_ID = 1;
     private static final String TAG = "NVPN";
 
-    private String config = "", username = "", password = "", name = "";
+    private VpnProfile vpnProfile;
+
+    private String config = "",
+            username = "",
+            password = "",
+            name = "",
+            dns1 = VpnProfile.DEFAULT_DNS1,
+            dns2 = VpnProfile.DEFAULT_DNS2;
+
+    private ArrayList<String> bypassPackages;
 
     private boolean attached = true;
 
@@ -153,11 +164,15 @@ public class MainActivity extends FlutterActivity {
                     setStage("disconnected");
                     break;
                 case "start":
+                    config = call.argument("config");
+                    name = call.argument("country");
+                    username = call.argument("username");
+                    password = call.argument("password");
 
-                    if (call.hasArgument("config")) config = call.argument("config");
-                    if (call.hasArgument("country")) name = call.argument("country");
-                    if (call.hasArgument("username")) username = call.argument("username");
-                    if (call.hasArgument("password")) password = call.argument("password");
+                    if (call.argument("dns1") != null) dns1 = call.argument("dns1");
+                    if (call.argument("dns2") != null) dns2 = call.argument("dns2");
+
+                    bypassPackages = call.argument("bypass_packages");
 
                     if (config == null || name == null) {
                         Log.e(TAG, "Config not valid!");
@@ -189,6 +204,17 @@ public class MainActivity extends FlutterActivity {
     private void prepareVPN() {
         if (isConnected()) {
             setStage("prepare");
+
+            try {
+                ConfigParser configParser = new ConfigParser();
+                configParser.parseConfig(new StringReader(config));
+                vpnProfile = configParser.convertProfile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ConfigParser.ConfigParseError configParseError) {
+                configParseError.printStackTrace();
+            }
+
             Intent vpnIntent = VpnService.prepare(this);
             if (vpnIntent != null) startActivityForResult(vpnIntent, VPN_REQUEST_ID);
             else startVPN();
@@ -200,9 +226,7 @@ public class MainActivity extends FlutterActivity {
     private void startVPN() {
         try {
             setStage("connecting");
-            ConfigParser configParser = new ConfigParser();
-            configParser.parseConfig(new StringReader(config));
-            VpnProfile vpnProfile = configParser.convertProfile();
+
             if (vpnProfile.checkProfile(this) != de.blinkt.openvpn.R.string.no_error_found) {
                 throw new RemoteException(getString(vpnProfile.checkProfile(this)));
             }
@@ -210,15 +234,21 @@ public class MainActivity extends FlutterActivity {
             vpnProfile.mProfileCreator = getPackageName();
             vpnProfile.mUsername = username;
             vpnProfile.mPassword = password;
+            vpnProfile.mDNS1 = dns1;
+            vpnProfile.mDNS2 = dns2;
+
+            if (dns1 != null && dns2 != null) {
+                vpnProfile.mOverrideDNS = true;
+            }
+
+            if (bypassPackages != null && bypassPackages.size() > 0) {
+                vpnProfile.mAllowedAppsVpn.addAll(bypassPackages);
+                vpnProfile.mAllowAppVpnBypass = true;
+            }
+
             ProfileManager.setTemporaryProfile(this, vpnProfile);
             VPNLaunchHelper.startOpenVpn(vpnProfile, this);
         } catch (RemoteException e) {
-            setStage("disconnected");
-            e.printStackTrace();
-        } catch (ConfigParser.ConfigParseError configParseError) {
-            setStage("disconnected");
-            configParseError.printStackTrace();
-        } catch (IOException e) {
             setStage("disconnected");
             e.printStackTrace();
         }
@@ -243,11 +273,13 @@ public class MainActivity extends FlutterActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == VPN_REQUEST_ID && resultCode == RESULT_OK) {
-            startVPN();
-        } else {
-            setStage("denied");
-            Toast.makeText(this, "Permission is denied!", Toast.LENGTH_SHORT).show();
+        if (requestCode == VPN_REQUEST_ID) {
+            if (resultCode == RESULT_OK) {
+                startVPN();
+            } else {
+                setStage("denied");
+                Toast.makeText(this, "Permission is denied!", Toast.LENGTH_SHORT).show();
+            }
         }
         super.onActivityResult(requestCode, resultCode, data);
     }

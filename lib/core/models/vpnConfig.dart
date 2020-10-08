@@ -3,14 +3,16 @@
  * Distributed under the GNU GPL v2 with additional terms. For full terms see the file doc/LICENSE.txt
  */
 
+import 'package:flutter/material.dart';
+
 import 'model.dart';
 
 class VpnConfig extends Model {
   VpnConfig({
-    this.name,
+    @required this.name,
     this.username,
     this.password,
-    this.config,
+    @required this.config,
   });
 
   String name;

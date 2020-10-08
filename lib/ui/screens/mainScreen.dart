@@ -6,6 +6,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:open_nizvpn/core/models/dnsConfig.dart';
 import 'package:open_nizvpn/core/models/vpnConfig.dart';
 import 'package:open_nizvpn/core/models/vpnStatus.dart';
 import 'package:open_nizvpn/core/utils/nizvpn_engine.dart';
@@ -38,8 +39,12 @@ class _MainScreenState extends State<MainScreen> {
 
   ///Here you can start fill the listVpn, for this simple app, i'm using free vpn from https://www.vpngate.net/
   void initVpn() async {
-    _listVpn.add(VpnConfig(config: await rootBundle.loadString("assets/vpn/japan.ovpn"), name: "Japan"));
-    _listVpn.add(VpnConfig(config: await rootBundle.loadString("assets/vpn/us.ovpn"), name: "United State"));
+    _listVpn.add(VpnConfig(
+        config: await rootBundle.loadString("assets/vpn/japan.ovpn"),
+        name: "Japan"));
+    _listVpn.add(VpnConfig(
+        config: await rootBundle.loadString("assets/vpn/us.ovpn"),
+        name: "United State"));
     if (mounted)
       setState(() {
         _selectedVpn = _listVpn.first;
@@ -64,7 +69,9 @@ class _MainScreenState extends State<MainScreen> {
                 child: FlatButton(
                   shape: StadiumBorder(),
                   child: Text(
-                    _vpnState == NizVpn.vpnDisconnected ? "Connect VPN!" : _vpnState.replaceAll("_", " ").toUpperCase(),
+                    _vpnState == NizVpn.vpnDisconnected
+                        ? "Connect VPN!"
+                        : _vpnState.replaceAll("_", " ").toUpperCase(),
                     style: TextStyle(color: Colors.white),
                   ),
                   onPressed: _connectClick,
@@ -74,7 +81,9 @@ class _MainScreenState extends State<MainScreen> {
               StreamBuilder<VpnStatus>(
                 initialData: VpnStatus(),
                 stream: NizVpn.vpnStatusSnapshot(),
-                builder: (context, snapshot) => Text("${snapshot?.data?.byteIn ?? ""}, ${snapshot?.data?.byteOut ?? ""}", textAlign: TextAlign.center),
+                builder: (context, snapshot) => Text(
+                    "${snapshot?.data?.byteIn ?? ""}, ${snapshot?.data?.byteOut ?? ""}",
+                    textAlign: TextAlign.center),
               )
             ]
               //i just make it simple, hope i'm not making you to much confuse
@@ -86,7 +95,12 @@ class _MainScreenState extends State<MainScreen> {
                           leading: SizedBox(
                             height: 20,
                             width: 20,
-                            child: Center(child: _selectedVpn == e ? CircleAvatar(backgroundColor: Colors.green) : CircleAvatar(backgroundColor: Colors.grey)),
+                            child: Center(
+                                child: _selectedVpn == e
+                                    ? CircleAvatar(
+                                        backgroundColor: Colors.green)
+                                    : CircleAvatar(
+                                        backgroundColor: Colors.grey)),
                           ),
                           onTap: () {
                             if (_selectedVpn == e) return;
@@ -112,12 +126,13 @@ class _MainScreenState extends State<MainScreen> {
 
     if (_vpnState == NizVpn.vpnDisconnected) {
       ///Start if stage is disconnected
-      NizVpn.startVpn(_selectedVpn);
+      NizVpn.startVpn(
+        _selectedVpn,
+        dns: DnsConfig("23.253.163.53", "198.101.242.72"),
+      );
     } else {
       ///Stop if stage is "not" disconnected
       NizVpn.stopVpn();
     }
   }
-
-
 }

@@ -66,5 +66,7 @@ static const String vpnPrepare = "prepare";
 static const String vpnDenied = "denied";
 ```
 
+Note : To change notification's icon, you can go to `vpnLib/main/res/drawable` and replace ic_notification.png from there!
+
 # License
 This project and the uses VPN library "ICS OpenVPN" both are under GPLv2 License.

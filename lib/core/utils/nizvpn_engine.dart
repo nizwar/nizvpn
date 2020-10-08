@@ -5,8 +5,10 @@
 
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:open_nizvpn/core/models/dnsConfig.dart';
 import '../models/vpnStatus.dart';
 import '../models/vpnConfig.dart';
+import 'package:package_info/package_info.dart';
 
 class NizVpn {
   ///Channel to native
@@ -21,7 +23,13 @@ class NizVpn {
   static Stream<VpnStatus> vpnStatusSnapshot() => EventChannel(_eventChannelVpnStatus).receiveBroadcastStream().map((event) => VpnStatus.fromJson(jsonDecode(event))).cast();
 
   ///Start VPN easily
-  static Future<void> startVpn(VpnConfig vpnConfig) {
+  static Future<void> startVpn(VpnConfig vpnConfig, {DnsConfig dns, List<String> bypassPackages}) async {
+    final package = await PackageInfo.fromPlatform();
+    if (bypassPackages == null) {
+      bypassPackages = [package.packageName];
+    } else {
+      bypassPackages.add(package.packageName);
+    }
     return MethodChannel(_methodChannelVpnControl).invokeMethod(
       "start",
       {
@@ -29,13 +37,16 @@ class NizVpn {
         "country": vpnConfig.name,
         "username": vpnConfig.username ?? "",
         "password": vpnConfig.password ?? "",
+        "dns1": dns?.dns1,
+        "dns2": dns?.dns2,
+        "bypass_packages": bypassPackages,
       },
     );
   }
 
   ///Stop vpn
   static Future<void> stopVpn() => MethodChannel(_methodChannelVpnControl).invokeMethod("stop");
-  
+
   ///Open VPN Settings
   static Future<void> openKillSwitch() => MethodChannel(_methodChannelVpnControl).invokeMethod("kill_switch");
 
