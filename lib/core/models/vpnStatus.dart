@@ -13,10 +13,10 @@ class VpnStatus extends Model {
     this.byteOut,
   });
 
-  String duration;
-  String lastPacketReceive;
-  String byteIn;
-  String byteOut;
+  String? duration;
+  String? lastPacketReceive;
+  String? byteIn;
+  String? byteOut;
 
   factory VpnStatus.fromJson(Map<String, dynamic> json) => VpnStatus(
         duration: json["duration"],

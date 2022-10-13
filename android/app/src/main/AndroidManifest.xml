@@ -13,6 +13,7 @@
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
+            android:exported="true"
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
@@ -37,10 +38,12 @@
             android:name="de.blinkt.openvpn.DisconnectVPNActivity"
             android:excludeFromRecents="true"
             android:noHistory="true"
+            android:exported="false"
             android:taskAffinity=".DisconnectVPN"
             android:theme="@style/blinkt.dialog" />
         <service
             android:name="de.blinkt.openvpn.core.OpenVPNService"
+            android:exported="true"
             android:permission="android.permission.BIND_VPN_SERVICE">
             <intent-filter>
                 <action android:name="android.net.VpnService" />

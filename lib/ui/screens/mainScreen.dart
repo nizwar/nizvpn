@@ -20,7 +20,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   String _vpnState = NizVpn.vpnDisconnected;
   List<VpnConfig> _listVpn = [];
-  VpnConfig _selectedVpn;
+  VpnConfig? _selectedVpn;
 
   @override
   void initState() {
@@ -39,12 +39,8 @@ class _MainScreenState extends State<MainScreen> {
 
   ///Here you can start fill the listVpn, for this simple app, i'm using free vpn from https://www.vpngate.net/
   void initVpn() async {
-    _listVpn.add(VpnConfig(
-        config: await rootBundle.loadString("assets/vpn/japan.ovpn"),
-        name: "Japan"));
-    _listVpn.add(VpnConfig(
-        config: await rootBundle.loadString("assets/vpn/us.ovpn"),
-        name: "United State"));
+    _listVpn.add(VpnConfig(config: await rootBundle.loadString("assets/vpn/japan.ovpn"), name: "Japan"));
+    _listVpn.add(VpnConfig(config: await rootBundle.loadString("assets/vpn/us.ovpn"), name: "United State"));
     if (mounted)
       setState(() {
         _selectedVpn = _listVpn.first;
@@ -66,41 +62,34 @@ class _MainScreenState extends State<MainScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
-                child: FlatButton(
-                  shape: StadiumBorder(),
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    shape: StadiumBorder(),
+                    backgroundColor: Theme.of(context).primaryColor,
+                  ),
                   child: Text(
-                    _vpnState == NizVpn.vpnDisconnected
-                        ? "Connect VPN!"
-                        : _vpnState.replaceAll("_", " ").toUpperCase(),
+                    _vpnState == NizVpn.vpnDisconnected ? "Connect VPN!" : _vpnState.replaceAll("_", " ").toUpperCase(),
                     style: TextStyle(color: Colors.white),
                   ),
                   onPressed: _connectClick,
-                  color: Theme.of(context).primaryColor,
                 ),
               ),
-              StreamBuilder<VpnStatus>(
+              StreamBuilder<VpnStatus?>(
                 initialData: VpnStatus(),
                 stream: NizVpn.vpnStatusSnapshot(),
-                builder: (context, snapshot) => Text(
-                    "${snapshot?.data?.byteIn ?? ""}, ${snapshot?.data?.byteOut ?? ""}",
-                    textAlign: TextAlign.center),
+                builder: (context, snapshot) => Text("${snapshot.data?.byteIn ?? ""}, ${snapshot.data?.byteOut ?? ""}", textAlign: TextAlign.center),
               )
             ]
               //i just make it simple, hope i'm not making you to much confuse
               ..addAll(
-                _listVpn != null && _listVpn.length > 0
+                _listVpn.isNotEmpty
                     ? _listVpn.map(
                         (e) => ListTile(
                           title: Text(e.name),
                           leading: SizedBox(
                             height: 20,
                             width: 20,
-                            child: Center(
-                                child: _selectedVpn == e
-                                    ? CircleAvatar(
-                                        backgroundColor: Colors.green)
-                                    : CircleAvatar(
-                                        backgroundColor: Colors.grey)),
+                            child: Center(child: _selectedVpn == e ? CircleAvatar(backgroundColor: Colors.green) : CircleAvatar(backgroundColor: Colors.grey)),
                           ),
                           onTap: () {
                             if (_selectedVpn == e) return;
@@ -127,7 +116,7 @@ class _MainScreenState extends State<MainScreen> {
     if (_vpnState == NizVpn.vpnDisconnected) {
       ///Start if stage is disconnected
       NizVpn.startVpn(
-        _selectedVpn,
+        _selectedVpn!,
         dns: DnsConfig("23.253.163.53", "198.101.242.72"),
       );
     } else {

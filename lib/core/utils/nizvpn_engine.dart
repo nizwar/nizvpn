@@ -20,10 +20,10 @@ class NizVpn {
   static Stream<String> vpnStageSnapshot() => EventChannel(_eventChannelVpnStage).receiveBroadcastStream().cast();
 
   ///Snapshot of VPN Connection Status
-  static Stream<VpnStatus> vpnStatusSnapshot() => EventChannel(_eventChannelVpnStatus).receiveBroadcastStream().map((event) => VpnStatus.fromJson(jsonDecode(event))).cast();
+  static Stream<VpnStatus?> vpnStatusSnapshot() => EventChannel(_eventChannelVpnStatus).receiveBroadcastStream().map((event) => VpnStatus.fromJson(jsonDecode(event))).cast();
 
   ///Start VPN easily
-  static Future<void> startVpn(VpnConfig vpnConfig, {DnsConfig dns, List<String> bypassPackages}) async {
+  static Future<void> startVpn(VpnConfig vpnConfig, {DnsConfig? dns, List<String>? bypassPackages}) async {
     final package = await PackageInfo.fromPlatform();
     if (bypassPackages == null) {
       bypassPackages = [package.packageName];
@@ -54,10 +54,10 @@ class NizVpn {
   static Future<void> refreshStage() => MethodChannel(_methodChannelVpnControl).invokeMethod("refresh");
 
   ///Get latest stage
-  static Future<String> stage() => MethodChannel(_methodChannelVpnControl).invokeMethod("stage");
+  static Future<String?> stage() => MethodChannel(_methodChannelVpnControl).invokeMethod("stage");
 
   ///Check if vpn is connected
-  static Future<bool> isConnected() => stage().then((value) => value.toLowerCase() == "connected");
+  static Future<bool> isConnected() => stage().then((value) => value?.toLowerCase() == "connected");
 
   ///All Stages of connection
   static const String vpnConnected = "connected";

@@ -25,7 +25,7 @@ apply plugin: 'com.android.application'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 33
 
     lintOptions {
         disable 'InvalidPackage'
@@ -34,7 +34,7 @@ android {
     defaultConfig {
         applicationId "id.nizwar.open_nizvpn"
         minSdkVersion 16
-        targetSdkVersion 30
+        targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
@@ -51,6 +51,11 @@ dependencies {
     implementation project(path: ':vpnLib')
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
     implementation 'androidx.multidex:multidex:2.0.1'
+    implementation('androidx.work:work-runtime') {
+        version {
+          strictly '2.7.0'
+      }
+    }
 }
 flutter {
     source '../..'
