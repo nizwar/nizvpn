@@ -1,6 +1,11 @@
 # NizVPN
 Flutter Android VPN based on OpenVPN Library.
 
+> [!IMPORTANT]
+> **NizVPN is no longer maintained.** Its OpenVPN engine dates from 2020 (OpenVPN 2.5, OpenSSL 1.1.1g, which Google Play flags) and `master` no longer builds with current Android tooling.
+>
+> Use [openvpn_flutter](https://pub.dev/packages/openvpn_flutter) instead: the same idea as a Flutter plugin, with OpenVPN 2.7 / OpenSSL 3.5, 16 KB page size support, iOS and macOS. Add `openvpn_flutter` to your app and follow its [README](https://github.com/nizwar/openvpn_flutter#readme).
+
 # Let's Code!
 I made it so simple to connect to OpenVPN, everything is setup, all you need to do is do the layouting *`on this project`* (i don't recommanded you to create a new project).
 
